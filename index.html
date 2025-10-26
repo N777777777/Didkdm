@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إيداع TON</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0088cc 0%, #005580 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 70px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
+        .wallet-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .connect-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0088cc 0%, #005580 100%);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 136, 204, 0.3);
+        }
+
+        .connected-info {
+            display: none;
+        }
+
+        .connected-info.show {
+            display: block;
+        }
+
+        .wallet-address {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #333;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+
+        .disconnect-btn {
+            margin-top: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .amount-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .amount-section.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .amount-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .amount-btn {
+            background: #f0f0f0;
+            border: 2px solid #e0e0e0;
+            padding: 18px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+            color: #333;
+        }
+
+        .amount-btn:hover {
+            background: #0088cc;
+            color: white;
+            border-color: #0088cc;
+            transform: translateY(-2px);
+        }
+
+        .amount-btn.selected {
+            background: #0088cc;
+            color: white;
+            border-color: #0088cc;
+        }
+
+        .custom-amount {
+            margin-bottom: 20px;
+        }
+
+        .custom-amount label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .custom-amount input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 14px;
+            font-size: 18px;
+            transition: border 0.3s;
+        }
+
+        .custom-amount input:focus {
+            outline: none;
+            border-color: #0088cc;
+        }
+
+        .pay-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 14px;
+            font-size: 19px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        .pay-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+        }
+
+        .pay-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-msg {
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .status-msg.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .status-msg.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-msg.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-msg.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0088cc;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        .loader.show {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .amount-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">💎</div>
+        <h1>إيداع TON</h1>
+        <p class="subtitle">وصّل محفظتك واختر المبلغ</p>
+
+        <!-- قسم الاتصال بالمحفظة -->
+        <div class="wallet-section">
+            <button class="connect-btn" id="connectBtn">
+                <span>🔗</span>
+                <span>ربط المحفظة</span>
+            </button>
+
+            <div class="connected-info" id="connectedInfo">
+                <div style="color: #28a745; font-weight: bold; margin-bottom: 10px;">
+                    ✅ المحفظة متصلة
+                </div>
+                <div class="wallet-address" id="walletAddress"></div>
+                <button class="disconnect-btn" id="disconnectBtn">قطع الاتصال</button>
+            </div>
+        </div>
+
+        <!-- قسم المبلغ (مخفي حتى يتصل) -->
+        <div class="amount-section" id="amountSection">
+            <div class="amount-options">
+                <button class="amount-btn" data-amount="0.5">0.5 TON</button>
+                <button class="amount-btn" data-amount="1">1 TON</button>
+                <button class="amount-btn" data-amount="5">5 TON</button>
+                <button class="amount-btn" data-amount="10">10 TON</button>
+            </div>
+
+            <div class="custom-amount">
+                <label for="customAmount">💵 أو أدخل مبلغاً مخصصاً:</label>
+                <input type="number" id="customAmount" placeholder="مثال: 2.5" step="0.1" min="0.1">
+            </div>
+
+            <button class="pay-btn" id="payBtn" disabled>اختر المبلغ أولاً</button>
+
+            <div class="loader" id="loader"></div>
+            <div class="status-msg" id="statusMsg"></div>
+        </div>
+    </div>
+
+    <!-- TON Connect SDK -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    
+    <script>
+        const WALLET = 'UQB97izclZdCRhHri7pZHDfIuaODkOLxvlN8zwc_7SzrNCYB';
+        const MIN_AMOUNT = 0.1;
+        
+        let selectedAmount = 0;
+        let userId = null;
+        let tonConnectUI = null;
+        let userWallet = null;
+
+        // استخراج user_id من الرابط
+        const urlParams = new URLSearchParams(window.location.search);
+        userId = urlParams.get('user_id');
+
+        // تهيئة TON Connect
+        async function initTonConnect() {
+            tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+                manifestUrl: 'https://yourdomain.com/tonconnect-manifest.json', // سنعدله لاحقاً
+                buttonRootId: null
+            });
+
+            // مراقبة حالة الاتصال
+            tonConnectUI.onStatusChange(wallet => {
+                if (wallet) {
+                    handleWalletConnected(wallet);
+                } else {
+                    handleWalletDisconnected();
+                }
+            });
+
+            // التحقق من وجود اتصال سابق
+            const currentWallet = tonConnectUI.wallet;
+            if (currentWallet) {
+                handleWalletConnected(currentWallet);
+            }
+        }
+
+        // عند الاتصال بالمحفظة
+        function handleWalletConnected(wallet) {
+            userWallet = wallet;
+            const address = wallet.account.address;
+            
+            document.getElementById('connectBtn').style.display = 'none';
+            document.getElementById('connectedInfo').classList.add('show');
+            document.getElementById('walletAddress').textContent = address;
+            document.getElementById('amountSection').classList.add('show');
+            
+            showStatus('تم الاتصال بنجاح! اختر المبلغ الآن', 'success');
+        }
+
+        // عند قطع الاتصال
+        function handleWalletDisconnected() {
+            userWallet = null;
+            document.getElementById('connectBtn').style.display = 'flex';
+            document.getElementById('connectedInfo').classList.remove('show');
+            document.getElementById('amountSection').classList.remove('show');
+        }
+
+        // عرض رسالة الحالة
+        function showStatus(message, type) {
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.textContent = message;
+            statusMsg.className = `status-msg show ${type}`;
+            
+            setTimeout(() => {
+                statusMsg.classList.remove('show');
+            }, 5000);
+        }
+
+        // الأزرار
+        document.getElementById('connectBtn').addEventListener('click', async () => {
+            try {
+                await tonConnectUI.openModal();
+            } catch (error) {
+                showStatus('فشل الاتصال، حاول مرة أخرى', 'error');
+            }
+        });
+
+        document.getElementById('disconnectBtn').addEventListener('click', async () => {
+            await tonConnectUI.disconnect();
+        });
+
+        // اختيار المبلغ
+        const amountBtns = document.querySelectorAll('.amount-btn');
+        const customInput = document.getElementById('customAmount');
+        const payBtn = document.getElementById('payBtn');
+
+        amountBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                amountBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedAmount = parseFloat(btn.dataset.amount);
+                customInput.value = '';
+                updatePayButton();
+            });
+        });
+
+        customInput.addEventListener('input', () => {
+            amountBtns.forEach(b => b.classList.remove('selected'));
+            selectedAmount = parseFloat(customInput.value) || 0;
+            updatePayButton();
+        });
+
+        function updatePayButton() {
+            if (selectedAmount >= MIN_AMOUNT) {
+                payBtn.disabled = false;
+                payBtn.textContent = `ادفع ${selectedAmount} TON الآن 💳`;
+            } else {
+                payBtn.disabled = true;
+                payBtn.textContent = 'اختر المبلغ أولاً';
+            }
+        }
+
+        // الدفع
+        payBtn.addEventListener('click', async () => {
+            if (!userWallet) {
+                showStatus('قم بربط المحفظة أولاً', 'error');
+                return;
+            }
+
+            if (selectedAmount < MIN_AMOUNT) {
+                showStatus(`الحد الأدنى ${MIN_AMOUNT} TON`, 'error');
+                return;
+            }
+
+            try {
+                document.getElementById('loader').classList.add('show');
+                payBtn.disabled = true;
+
+                const amountNano = Math.floor(selectedAmount * 1000000000);
+                const timestamp = Date.now();
+                const comment = userId ? `deposit_${userId}_${timestamp}` : `deposit_${timestamp}`;
+
+                const transaction = {
+                    validUntil: Math.floor(Date.now() / 1000) + 600, // 10 دقائق
+                    messages: [
+                        {
+                            address: WALLET,
+                            amount: amountNano.toString(),
+                            payload: btoa(comment) // تشفير التعليق
+                        }
+                    ]
+                };
+
+                const result = await tonConnectUI.sendTransaction(transaction);
+                
+                document.getElementById('loader').classList.remove('show');
+                
+                if (result) {
+                    showStatus('✅ تم الدفع بنجاح! ارجع للبوت', 'success');
+                    
+                    // إرسال إشعار للبوت (اختياري)
+                    if (userId) {
+                        // هنا يمكنك إرسال webhook للبوت
+                        console.log('Payment successful:', comment);
+                    }
+
+                    setTimeout(() => {
+                        if (window.Telegram && window.Telegram.WebApp) {
+                            window.Telegram.WebApp.close();
+                        }
+                    }, 2000);
+                }
+            } catch (error) {
+                document.getElementById('loader').classList.remove('show');
+                payBtn.disabled = false;
+                showStatus('فشل الدفع: ' + error.message, 'error');
+            }
+        });
+
+        // تهيئة عند تحميل الصفحة
+        initTonConnect();
+    </script>
+</body>
+</html>
