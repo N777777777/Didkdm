@@ -481,20 +481,20 @@
 
                 console.log('💸 إرسال معاملة:', {
                     amount: selectedAmount,
-                    comment: comment,
+                    userId: userId,
                     to: WALLET_ADDRESS
                 });
 
                 // تحويل المبلغ إلى nanoTON
                 const amountNano = Math.floor(selectedAmount * 1_000_000_000).toString();
 
+                // إرسال معاملة بسيطة بدون payload (أبسط وأكثر استقراراً)
                 const transaction = {
                     validUntil: Math.floor(Date.now() / 1000) + 360,
                     messages: [
                         {
                             address: WALLET_ADDRESS,
-                            amount: amountNano,
-                            payload: btoa(comment)
+                            amount: amountNano
                         }
                     ]
                 };
