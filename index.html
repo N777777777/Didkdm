@@ -337,31 +337,34 @@
         // تهيئة TON Connect للتليجرام
         async function initTonConnect() {
             try {
+                // الحصول على رابط الـ manifest
+                let manifestUrl;
+                
+                // التحقق من البيئة
+                const hostname = window.location.hostname;
+                const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '';
+                
+                if (isLocal) {
+                    // للتجربة المحلية - استخدام manifest مؤقت
+                    console.log('🧪 وضع التجربة المحلية');
+                    manifestUrl = 'https://ton-connect.github.io/demo-dapp-with-wallet/tonconnect-manifest.json';
+                } else {
+                    // بعد الرفع - استخدام الـ manifest الخاص بنا
+                    manifestUrl = window.location.origin + '/tonconnect-manifest.json';
+                    console.log('✅ استخدام manifest من:', manifestUrl);
+                }
+                
+                console.log('📡 جاري تهيئة TON Connect...');
+                
                 tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-                    manifestUrl: 'https://raw.githubusercontent.com/ton-community/tutorials/main/03-client/test/public/tonconnect-manifest.json',
-                    walletsListConfiguration: {
-                        includeWallets: [
-                            {
-                                appName: "tonkeeper",
-                                name: "Tonkeeper",
-                                imageUrl: "https://tonkeeper.com/assets/tonconnect-icon.png",
-                                aboutUrl: "https://tonkeeper.com",
-                                universalLink: "https://app.tonkeeper.com/ton-connect",
-                                bridgeUrl: "https://bridge.tonapi.io/bridge",
-                                platforms: ["ios", "android", "chrome", "firefox"]
-                            },
-                            {
-                                appName: "mytonwallet",
-                                name: "MyTonWallet",
-                                imageUrl: "https://static.mytonwallet.io/icon-256.png",
-                                aboutUrl: "https://mytonwallet.io",
-                                universalLink: "https://connect.mytonwallet.org",
-                                bridgeUrl: "https://tonconnectbridge.mytonwallet.org/bridge",
-                                platforms: ["chrome", "firefox", "safari"]
-                            }
-                        ]
+                    manifestUrl: manifestUrl,
+                    buttonRootId: null, // عشان ما نستخدمش الزرار الافتراضي
+                    actionsConfiguration: {
+                        twaReturnUrl: 'https://t.me/your_bot_username'
                     }
                 });
+
+                console.log('✅ تم تهيئة TON Connect بنجاح');
 
                 // مراقبة حالة الاتصال
                 tonConnectUI.onStatusChange(wallet => {
@@ -378,8 +381,15 @@
                     onWalletConnected(currentWallet);
                 }
             } catch (error) {
-                console.error('TON Connect init error:', error);
-                tg.showAlert('خطأ في تهيئة المحفظة');
+                console.error('❌ خطأ في تهيئة TON Connect:', error);
+                document.getElementById('status').className = 'status disconnected';
+                document.getElementById('status').textContent = '❌ خطأ في التهيئة: ' + error.message;
+                
+                if (!isInTelegram) {
+                    alert('⚠️ خطأ في تهيئة المحفظة\n\nتأكد من:\n1. رفع ملف tonconnect-manifest.json\n2. الملف في نفس المجلد مع index.html\n3. استخدام HTTPS');
+                } else {
+                    tg.showAlert('خطأ في تهيئة المحفظة: ' + error.message);
+                }
             }
         }
 
